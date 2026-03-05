@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RWR EXT. | SHIRAZ BYPASS ENGINE V2</title>
+    <style>
+        :root { 
+            --bg: #000000; --acc: #39ff14; --purp: #bc5af2; 
+            --cyan: #06b6d4; --err: #ff3b30; --surface: #111111;
+        }
+        
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        
+        body { 
+            background: var(--bg); color: #fff; 
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; 
+            padding: 15px; margin: 0; line-height: 1.5; padding-bottom: 100px;
+        }
+
+        .card { 
+            background: var(--surface); border: 1px solid #222; 
+            border-radius: 12px; padding: 15px; margin-bottom: 15px; 
+        }
+
+        .shiraz-critical { border: 1px solid var(--acc); background: rgba(57, 255, 20, 0.05); }
+        
+        /* Node Items for Live Feed */
+        .node-item { 
+            background: #000; border-left: 3px solid var(--acc); 
+            padding: 12px; margin: 8px 0; border-radius: 6px; 
+            font-family: monospace; font-size: 0.7rem; cursor: pointer; 
+            overflow: hidden; text-overflow: ellipsis; white-space: nowrap; 
+        }
+        .node-item:active { background: #1a1a1a; transform: scale(0.98); }
+
+        /* Subscription Links */
+        .sub-btn {
+            display: flex; flex-direction: column; gap: 4px;
+            background: #080808; border: 1px solid #333;
+            padding: 12px; border-radius: 8px; margin-bottom: 10px;
+            cursor: pointer; transition: 0.2s;
+        }
+        .sub-btn:active { border-color: var(--purp); background: #1a1a1a; transform: scale(0.98); }
+        .sub-title { font-size: 0.8rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; }
+        .sub-desc { font-size: 0.65rem; color: #888; }
+        
+        .tag { font-size: 0.6rem; font-weight: 900; padding: 2px 5px; border-radius: 3px; margin-right: 5px; color: #000; }
+        
+        /* Navigation */
+        .nav-bar {
+            position: fixed; bottom: 25px; left: 15px; right: 15px;
+            background: rgba(20, 20, 20, 0.85);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            border: 1px solid #333; border-radius: 30px; padding: 8px;
+            display: flex; justify-content: space-around; z-index: 9999;
+        }
+        .nav-item {
+            padding: 10px 15px; border-radius: 20px; font-size: 0.75rem;
+            font-weight: 700; color: #777; transition: 0.2s; cursor: pointer;
+        }
+        .nav-item.active { background: rgba(255,255,255,0.1); color: var(--acc); }
+
+        #toast { 
+            position: fixed; top: 50px; left: 50%; transform: translateX(-50%); 
+            background: var(--acc); color: #000; padding: 8px 25px; 
+            border-radius: 20px; font-size: 0.8rem; font-weight: bold; 
+            opacity: 0; transition: 0.3s; pointer-events: none; z-index: 10000;
+        }
+
+        .tab-content { display: none; animation: fadeIn 0.3s ease; }
+        .tab-content.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        .header-title { font-size: 1.2rem; font-weight: 900; letter-spacing: -0.5px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <div id="toast">URL COPIED!</div>
+
+    <div class="header-title">
+        <span>Aliza EXT. <span style="color:var(--acc)">V8.6A</span></span>
+        <span id="sync-status" style="font-size: 0.6rem; color: #888; font-weight: normal; font-family: monospace;">STANDBY</span>
+    </div>
+
+    <div class="card shiraz-critical">
+        <h3 style="color:var(--acc); margin-top:0; font-size: 0.9rem;">⚠️ SHIRAZ BYPASS RULE</h3>
+        <p style="font-size: 0.75rem; color: #ccc; margin-bottom: 5px;">Without this, the ISP will block you instantly:</p>
+        <ol style="font-size: 0.7rem; color: var(--acc); padding-left: 15px; margin-top: 5px;">
+            <li>In Foxray, go to <b>Settings > Fragment</b>.</li>
+            <li>Set <b>Packets: 10-20</b> and <b>Interval: 10-20</b>.</li>
+        </ol>
+    </div>
+
+    <div id="tab-live" class="tab-content active">
+        <div class="card">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom: 10px;">
+                <span style="font-size: 0.75rem; font-weight: bold; color: var(--acc);">LIVE EMERGENCY NODES</span>
+            </div>
+            <div id="node-container">
+                <p style="text-align:center; padding: 20px; color: #555; font-size: 0.8rem;">Scanning OpenRay Gateways...</p>
+            </div>
+            <div style="text-align: center; margin-top: 15px;">
+                <button onclick="fetchNodes()" style="background:var(--acc); color:#000; border:none; padding:10px 20px; border-radius:20px; font-weight:bold; font-size:0.7rem; cursor:pointer;">FORCE RE-SCAN</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-top" class="tab-content">
+        <div class="card">
+            <div style="font-size: 0.8rem; font-weight: bold; color: var(--purp); margin-bottom: 15px;">OPENRAY MASTER LISTS</div>
+            <p style="font-size: 0.7rem; color: #888; margin-bottom: 15px;">Tap to copy the subscription URL, then paste into Foxray's Subscription section.</p>
+            
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/iran_top100_checked.txt')">
+                <div class="sub-title" style="color: var(--acc);">🇮🇷 Iran Top 100</div>
+                <div class="sub-desc">The most reliable, highly checked nodes specifically for Iran filtering.</div>
+            </div>
+
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output/all_valid_proxies.txt')">
+                <div class="sub-title" style="color: var(--purp);">🌍 Global Valid Proxies</div>
+                <div class="sub-desc">Massive list of all tested and working proxies globally.</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-carriers" class="tab-content">
+        <div class="card">
+            <div style="font-size: 0.8rem; font-weight: bold; color: var(--cyan); margin-bottom: 15px;">CARRIER-SPECIFIC CONFIGS</div>
+            <p style="font-size: 0.7rem; color: #888; margin-bottom: 15px;">Targeted bypasses based on your local ISP. Add as a subscription.</p>
+
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/mci_top100.txt')">
+                <div class="sub-title" style="color: #fff;">Hamrahe Aval (MCI)</div>
+                <div class="sub-desc">Optimized for MCI cellular network.</div>
+            </div>
+
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/irancell_top100.txt')">
+                <div class="sub-title" style="color: #ffcc00;">Irancell (MTN)</div>
+                <div class="sub-desc">Optimized for Irancell network.</div>
+            </div>
+
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/tci_top100.txt')">
+                <div class="sub-title" style="color: #007aff;">TCI (Fixed Broadband)</div>
+                <div class="sub-desc">Optimized for home WiFi and broadband.</div>
+            </div>
+
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/OpenRay/refs/heads/main/output_iran/others_top100.txt')">
+                <div class="sub-title" style="color: #ff3b30;">Rightel / Other ISPs</div>
+                <div class="sub-desc">Configs for alternative Iranian carriers.</div>
+            </div>
+        </div>
+
+        <div class="card">
+            <div style="font-size: 0.8rem; font-weight: bold; color: #0088cc; margin-bottom: 15px;">TELEGRAM PROXIES</div>
+            <div class="sub-btn" onclick="iosCopy('https://raw.githubusercontent.com/sakha1370/V2rayCollector/refs/heads/main/active_mtproto_proxies.txt')">
+                <div class="sub-title" style="color: #0088cc;">Active MTProto (Fresh)</div>
+                <div class="sub-desc">Direct proxies for bypassing Telegram blocks.</div>
+            </div>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active" onclick="switchTab('tab-live', this)">LIVE</div>
+        <div class="nav-item" onclick="switchTab('tab-top', this)">TOP 100</div>
+        <div class="nav-item" onclick="switchTab('tab-carriers', this)">CARRIERS</div>
+    </nav>
+
+    <script>
+        // TAB LOGIC
+        function switchTab(tabId, element) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+            
+            document.getElementById(tabId).classList.add('active');
+            element.classList.add('active');
+        }
+
+        // iOS CLIPBOARD ENGINE
+        function iosCopy(text) {
+            const el = document.createElement('textarea');
+            el.value = text;
+            el.style.position = 'fixed';
+            el.style.left = '-9999px';
+            document.body.appendChild(el);
+            el.focus();
+            el.select();
+            
+            try {
+                document.execCommand('copy');
+                const t = document.getElementById('toast');
+                t.style.opacity = "1";
+                setTimeout(() => t.style.opacity = "0", 1500);
+            } catch (err) {
+                console.error('Copy failed');
+            }
+            document.body.removeChild(el);
+        }
+
+        // LIVE FEED ENGINE - Updated with Fallback & Cache Busting
+        async function fetchNodes() {
+            const container = document.getElementById('node-container');
+            const status = document.getElementById('sync-status');
+            status.innerText = "SYNCING...";
+            
+            // Cleaner, direct GitHub raw URL
+            const rawUrl = "https://raw.githubusercontent.com/sakha1370/OpenRay/main/output_iran/iran_top100_checked.txt";
+            
+            // Anti-filtering rotation: Direct > CorsProxy > AllOrigins > CodeTabs
+            const endpoints = [
+                rawUrl,
+                `https://corsproxy.io/?${encodeURIComponent(rawUrl)}`,
+                `https://api.allorigins.win/raw?url=${encodeURIComponent(rawUrl)}`,
+                `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(rawUrl)}`
+            ];
+
+            let data = null;
+
+            // Loop through endpoints until one works
+            for (let url of endpoints) {
+                try {
+                    // cache: "no-store" ensures we don't fetch dead/stale proxies
+                    const res = await fetch(url, { cache: "no-store" });
+                    if (!res.ok) continue;
+                    
+                    const text = await res.text();
+                    
+                    // Validate that the response is actually our text list, not an ISP block page (HTML)
+                    if (text.includes('://') && !text.includes('<html')) {
+                        data = text;
+                        break; // Success! Stop trying other endpoints.
+                    }
+                } catch (e) {
+                    console.warn(`Endpoint failed: ${url}`);
+                }
+            }
+            
+            try {
+                if (!data) throw new Error("All proxy endpoints blocked or unreachable.");
+                
+                // Parse the data and clean up empty spaces
+                const nodes = data.split('\n').map(l => l.trim()).filter(l => l.includes('://') && l.length > 40);
+                
+                // Shuffle and pick 10 fresh nodes for the live UI
+                const display = nodes.sort(() => 0.5 - Math.random()).slice(0, 10);
+                
+                if (display.length > 0) {
+                    container.innerHTML = display.map(node => {
+                        const type = node.split('://')[0].toUpperCase();
+                        let color = type === 'VLESS' ? '#39ff14' : (type === 'VMESS' ? '#bc5af2' : (type === 'TROJAN' ? '#ffcc00' : '#06b6d4'));
+                        return `<div class="node-item" style="border-left-color: ${color}" onclick="iosCopy('${node}')">
+                                    <span class="tag" style="background:${color}; color:#000;">${type}</span>
+                                    ${node}
+                                </div>`;
+                    }).join('');
+                    status.innerText = "ONLINE";
+                    status.style.color = "var(--acc)";
+                } else {
+                    throw new Error("No valid links parsed");
+                }
+            } catch (e) { 
+                container.innerHTML = `<p style='color:var(--err); text-align:center;'>Gateways blocked or unreachable. Please use the TOP 100 tab to copy subscription URLs directly.</p>`;
+                status.innerText = "FAILED";
+                status.style.color = "var(--err)";
+            }
+        }
+
+        window.onload = fetchNodes;
+    </script>
+</body>
+</html>
